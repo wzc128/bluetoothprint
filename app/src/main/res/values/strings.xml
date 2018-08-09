@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">货微打</string>
+    <string name="send">PRINT SAMPLE</string>
+    <string name="not_connected">NO CONNETED</string>
+    <string name="bt_not_enabled_leaving">bt_not_enabled_leaving.</string>
+    <string name="title_connecting">Connecting......</string>
+    <string name="title_connected_to">Connected: </string>
+    <string name="title_not_connected">No Connected</string>
+    <!--  DeviceListActivity -->
+    <string name="scanning">Scanning......</string>
+    <string name="select_device">SELECT DEVICE</string>
+    <string name="none_paired">NO PAIRED</string>
+    <string name="none_found">No FOUND</string>
+    <string name="title_paired_devices">Paired Devices</string>
+    <string name="title_other_devices">other devices</string>
+    <string name="button_scan">SCAN</string>
+    <!-- Options Menu -->
+    <string name="connect">connect</string>
+    <string name="discoverable">discoverable</string>
+    <string name="testtext">QR386 PRINTTEXT</string>
+    <string name="doubleheight">DoubleHeight</string>
+    <string name="doublewidth">DoubleWidth</string>
+    <string name="FontBold">FontBold</string>
+    <string name="FontUnderLine">FontUnderLine</string>
+    <string name="Position">Position</string>
+    <string name="Rotation">Rotation</string>
+    <string name="PrintNum">Label number：</string>
+    <string name="action_settings">SET</string>
+</resources>

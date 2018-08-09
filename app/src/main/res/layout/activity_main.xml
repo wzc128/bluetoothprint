@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:background="#f7f3f7"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <RelativeLayout
+        android:background="#11A197"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true">
+
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/back" />
+
+        <TextView
+            android:textSize="18sp"
+            android:textColor="#ffffff"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:text="订单信息" />
+
+    </RelativeLayout>
+
+<LinearLayout
+    android:layout_marginRight="10dp"
+    android:layout_marginLeft="10dp"
+    android:layout_marginTop="10dp"
+    android:background="@drawable/relative_shape"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="29dp"
+            android:src="@drawable/ji" />
+
+        <TextView
+            android:textSize="18sp"
+            android:id="@+id/jijianren_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="105dp"
+            android:layout_marginTop="10dp"
+            android:text="zhangsan" />
+
+        <TextView
+            android:layout_marginLeft="10dp"
+            android:textSize="18sp"
+            android:id="@+id/jijianren_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/jijianren_name"
+            android:layout_toEndOf="@+id/jijianren_name"
+            android:text="15588888888" />
+
+        <TextView
+            android:id="@+id/jijianren_address"
+            android:layout_width="237dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/jijianren_name"
+            android:layout_marginBottom="17dp"
+            android:text="sdasdasdasdaasdasdsadasdasdasdsdasdasdsdaasdsadasdasdasdas" />
+
+
+    </RelativeLayout>
+    <View
+    android:background="#cec0ce"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="1dp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        >
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="29dp"
+            android:src="@drawable/shou" />
+
+        <TextView
+            android:textSize="18sp"
+            android:id="@+id/shoujianren_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="105dp"
+            android:layout_marginTop="10dp"
+            android:text="张三" />
+
+        <TextView
+            android:layout_marginLeft="10dp"
+            android:textSize="18sp"
+            android:id="@+id/shoujianren_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/shoujianren_name"
+            android:layout_toEndOf="@+id/shoujianren_name"
+            android:text="15588888888" />
+
+        <TextView
+            android:id="@+id/shoujianren_address"
+            android:layout_width="237dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/shoujianren_name"
+            android:layout_marginBottom="21dp"
+            android:text="sdasdasdasdaasdasdsadasdasdasdasdasdasdasdasdsdaasdsas" />
+
+
+    </RelativeLayout>
+</LinearLayout>
+
+<RelativeLayout
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:background="@drawable/relative_shape"
+    android:layout_marginTop="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="150dp">
+
+    <TextView
+        android:textSize="18sp"
+        android:id="@+id/waixiang"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="22dp"
+        android:text="外箱ID:" />
+
+    <TextView
+        android:id="@+id/waixianghao"
+        android:textSize="18sp"
+        android:layout_marginLeft="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/waixiang"
+        android:layout_toEndOf="@+id/waixiang"
+        android:text="JH8978978978978787831" />
+
+    <TextView
+        android:textSize="18sp"
+        android:id="@+id/pici"
+        android:layout_below="@+id/waixiang"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/waixiang"
+        android:layout_centerVertical="true"
+        android:text="批次号:" />
+
+    <TextView
+        android:id="@+id/picihao"
+        android:textSize="18sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_alignTop="@+id/pici"
+        android:layout_toEndOf="@+id/waixiang"
+        android:text="HIK6786786781235312" />
+
+    <View
+        android:id="@+id/view1"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/pici"
+        android:background="#cec0ce"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+    <TextView
+        android:textColor="#11A197"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/view1"
+        android:text="该项属于该批次第二份次数，阿萨大厦"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+</RelativeLayout>
+
+
+    <TextView
+        android:textSize="18sp"
+        android:id="@+id/info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="信息" />
+
+
+    <Button
+        android:layout_marginTop="50dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:textSize="18sp"
+        android:textColor="#ffffff"
+        android:background="@drawable/button_shape"
+        android:id="@+id/dayin"
+        android:text="打印"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
