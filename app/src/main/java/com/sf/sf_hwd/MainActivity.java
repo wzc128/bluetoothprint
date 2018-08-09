@@ -69,6 +69,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
     }
+
     private static final String TAG = "MainActivity";
     private static final boolean D = true;
     private boolean isConnected = false;
@@ -88,26 +89,41 @@ public class MainActivity extends Activity implements View.OnClickListener {
             return;
         }
         printPP_cpcl = new PrintPP_CPCL();
-            if("".equals(SPUtil.getParam(this,"name",""))||"".equals(SPUtil.getParam(this,"address",""))){
-           jumpToDevice();
-        }else {
-                if (!printPP_cpcl.isConnected()) {
-                    lianjielanya(SPUtil.getParam(this, "name", ""),SPUtil.getParam(this, "address", ""));
-                }
+        if ("".equals(SPUtil.getParam(this, "name", "")) || "".equals(SPUtil.getParam(this, "address", ""))) {
+            jumpToDevice();
+        } else {
+            if (!printPP_cpcl.isConnected()) {
+                lianjielanya(SPUtil.getParam(this, "name", ""), SPUtil.getParam(this, "address", ""));
+            }
         }
 
-         my = new BroadcastReceiver() {
+        my = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                mInfo.setText("蓝牙设备已断开，请重新连接");
-                isConnected =false;
+
+                if (intent.getAction().equals(SCANRESULT)) {
+                    String  barocode=intent.getStringExtra("value");
+                    int barocodelen=intent.getIntExtra("length",0);
+                    System.out.println(barocode);
+                    System.out.println(barocodelen);
+
+                }
+                if (intent.getAction().equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+                    mInfo.setText("蓝牙设备已断开，请重新连接");
+                    isConnected = false;
+                }
+
             }
         };
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        registerReceiver(my,filter);
+        filter.addAction("android.intent.action.SCANRESULT");
+        registerReceiver(my, filter);
     }
+
     BroadcastReceiver my;
+    public static final String SCANRESULT = "android.intent.action.SCANRESULT";
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -115,7 +131,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         unregisterReceiver(my);
     }
 
-    public void jumpToDevice(){
+    public void jumpToDevice() {
         Intent serverIntent = new Intent(this, DeviceListActivity.class);
         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
     }
@@ -140,7 +156,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     name = sdata.substring(0, (sdata.length() - 17));
                     if (!isConnected) {
 
-                        lianjielanya(name,address);
+                        lianjielanya(name, address);
                     }
                 }
                 break;
@@ -148,32 +164,32 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         }
     }
-    Handler handler = new Handler(){
+
+    Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            switch (msg.what){
-               case  1:
-                   BlueToothBean obj = (BlueToothBean) msg.obj;
-                   if (obj.isConnect()) {
-                           isConnected = true;
-                           mInfo.setText("蓝牙地址"+obj.getAddress());
-                           mInfo.setText("蓝牙名称"+obj.getName());
-                           SPUtil.setParam(MainActivity.this,"address",obj.getAddress());
-                           SPUtil.setParam(MainActivity.this,"name",obj.getName());
-                       } else {
-                           mInfo.setText("连接失败,点击【打印】重新选择蓝牙设备");
-                           isConnected = false;
-                       }
-                       mDayin.setEnabled(true);
-                break;
+            switch (msg.what) {
+                case 1:
+                    BlueToothBean obj = (BlueToothBean) msg.obj;
+                    if (obj.isConnect()) {
+                        isConnected = true;
+                        mInfo.setText("蓝牙地址" + obj.getAddress());
+                        mInfo.setText("蓝牙名称" + obj.getName());
+                        SPUtil.setParam(MainActivity.this, "address", obj.getAddress());
+                        SPUtil.setParam(MainActivity.this, "name", obj.getName());
+                    } else {
+                        mInfo.setText("连接失败,点击【打印】重新选择蓝牙设备");
+                        isConnected = false;
+                    }
+                    mDayin.setEnabled(true);
+                    break;
             }
         }
     };
 
 
-
-    public void lianjielanya(final String nameStr, final String addressStr){
+    public void lianjielanya(final String nameStr, final String addressStr) {
         mDayin.setEnabled(false);
         mInfo.setText("正在连接中，请稍等。。。");
         new Thread(new Runnable() {
@@ -181,8 +197,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void run() {
                 boolean connect = printPP_cpcl.connect(nameStr, addressStr);
                 Message message = new Message();
-                message.what =1 ;
-                message.obj =new BlueToothBean(nameStr,addressStr,connect);
+                message.what = 1;
+                message.obj = new BlueToothBean(nameStr, addressStr, connect);
                 handler.sendMessage(message);
             }
         }).start();
@@ -213,18 +229,29 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
 
-    public void daNet(){
+    public void daNet() {
 
-        HttpUtils.doGetAsyn("", new HttpUtils.CallBack() {
-            @Override
-            public void onRequestComplete(String result) {
-                mDayin.setEnabled(true);
-                if("".equals(result)||result==null){
+//        HttpUtils.doPostAsyn("","code=12113413431413"+"&no="+);
 
-                }else print();
+//        HttpUtils.doGetAsyn("", new HttpUtils.CallBack() {
+////            @Override
+////            public void onRequestComplete(String result) {
+////                mDayin.setEnabled(true);
+////                if ("".equals(result) || result == null) {
+////
+////                } else print();
+////
+////            }
+////        });
 
-            }
-        });
+        Intent intent = new Intent(this,Main2Activity.class);
+        intent.putExtra("code",123);
+        intent.putExtra("name","asan");
+        Data data = new Data();
+        data.setName("xxxxx");
+        intent.putExtra("data",data);
+        startActivity(intent);
+
     }
 
     @Override
@@ -233,11 +260,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
             default:
                 break;
             case R.id.dayin:
-                if(isConnected){
-                    mDayin.setEnabled(false);
+                if (isConnected) {
+//                    mDayin.setEnabled(false);
                     daNet();
 
-                }else {
+                } else {
                     //选择设备界面
                     jumpToDevice();
                 }
@@ -319,7 +346,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             data.add(printer.QiRui_Text(48, 288, "TSS16.BF2", 0, 1, 1, true,
                     "地"));
             data.add(printer.QiRui_Text(88, 240, "TSS32.BF2", 0, 2, 2, true,
-                   "目的地TTE")); //目的地
+                    "目的地TTE")); //目的地
             data.add(printer.QiRui_Text(48, 336, "TSS16.BF2", 0, 1, 1, true,
                     "收"));
             data.add(printer.QiRui_Text(48, 360, "TSS16.BF2", 0, 1, 1, true,
@@ -383,7 +410,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             data.add(printer.QiRui_Text(88, 448, "TSS16.BF2", 0, 1, 1, true,
                     "上海市 上海市")); //寄件人
             data.add(printer.QiRui_Text(88, 472, "TSS16.BF2", 0, 1, 1, true,
-                   "是撒额发违反啊额我发i俄军发")); //寄件人
+                    "是撒额发违反啊额我发i俄军发")); //寄件人
 
             data.add(printer.QiRui_Text(48, 856, "TSS16.BF2", 0, 1, 1, true,
                     "寄"));
@@ -398,7 +425,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             data.add(printer.QiRui_Text(88, 880, "TSS16.BF2", 0, 1, 1, true,
                     "上海市 上海市")); //寄件人
             data.add(printer.QiRui_Text(88, 904, "TSS16.BF2", 0, 1, 1, true,
-                   "是撒额发违反啊额我发i俄军发")); //寄件人
+                    "是撒额发违反啊额我发i俄军发")); //寄件人
             String payMethod = "寄方付"; //1:寄方付 2:收方付 3:第三方付
             data.add(printer.QiRui_Text(40, 512, "TSS16.BF2", 0, 1, 1, true,
                     "付款方式:" + payMethod));
@@ -449,6 +476,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             printPP_cpcl.portSendCmd(data);
         }
     }
+
     public void printecommendData() {
         if (isConnected) {
             ArrayList<byte[]> data = new ArrayList<byte[]>();

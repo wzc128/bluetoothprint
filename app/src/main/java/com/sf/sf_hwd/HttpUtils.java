@@ -85,7 +85,7 @@ public class HttpUtils {
             conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(TIMEOUT_IN_MILLIONS);
             conn.setConnectTimeout(TIMEOUT_IN_MILLIONS);
-            conn.setRequestProperty("Authorization","Basic NjAxMTAwMDE6TlRBMVFVRXpSVEZEUWpJMVJUWXlPRU0xTXpZME56a3dSVEU0TTBaQ1JFVT0=");
+//            conn.setRequestProperty("Authorization","Basic NjAxMTAwMDE6TlRBMVFVRXpSVEZEUWpJMVJUWXlPRU0xTXpZME56a3dSVEU0TTBaQ1JFVT0=");
             conn.setRequestMethod("GET");
             conn.setRequestProperty("accept", "*/*");
             conn.setRequestProperty("connection", "Keep-Alive");
