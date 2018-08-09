@@ -128,16 +128,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         showDialog();
                         if (printPP_cpcl.connect(name, address)) {
                             isConnected = true;
-
                             mInfo.setText("蓝牙地址"+address);
                             mInfo.setText("蓝牙名称"+name);
                             SPUtil.setParam(this,"address",address);
                             SPUtil.setParam(this,"name",name);
-
                         } else {
                             mInfo.setText("连接失败");
                             isConnected = false;
                         }
+
                     }
                 }
                 break;
