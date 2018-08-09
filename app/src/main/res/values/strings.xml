@@ -1,19 +1,19 @@
 <resources>
     <string name="app_name">货微打</string>
     <string name="send">PRINT SAMPLE</string>
-    <string name="not_connected">NO CONNETED</string>
+    <string name="not_connected">没有连接</string>
     <string name="bt_not_enabled_leaving">bt_not_enabled_leaving.</string>
-    <string name="title_connecting">Connecting......</string>
-    <string name="title_connected_to">Connected: </string>
-    <string name="title_not_connected">No Connected</string>
+    <string name="title_connecting">连接衷......</string>
+    <string name="title_connected_to">连接上: </string>
+    <string name="title_not_connected">没有连接</string>
     <!--  DeviceListActivity -->
-    <string name="scanning">Scanning......</string>
-    <string name="select_device">SELECT DEVICE</string>
-    <string name="none_paired">NO PAIRED</string>
-    <string name="none_found">No FOUND</string>
-    <string name="title_paired_devices">Paired Devices</string>
-    <string name="title_other_devices">other devices</string>
-    <string name="button_scan">SCAN</string>
+    <string name="scanning">扫描中......</string>
+    <string name="select_device">选择设备</string>
+    <string name="none_paired">没有配对</string>
+    <string name="none_found">没发现设备</string>
+    <string name="title_paired_devices">历史记录配对记录</string>
+    <string name="title_other_devices">其它设备</string>
+    <string name="button_scan">扫描</string>
     <!-- Options Menu -->
     <string name="connect">connect</string>
     <string name="discoverable">discoverable</string>

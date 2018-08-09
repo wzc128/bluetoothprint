@@ -2,8 +2,12 @@ package com.sf.sf_hwd;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -62,9 +66,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mDayin.setOnClickListener(this);
         mBack.setOnClickListener(this);
         mInfo = (TextView) findViewById(R.id.info);
+
+
     }
-
-
     private static final String TAG = "MainActivity";
     private static final boolean D = true;
     private boolean isConnected = false;
@@ -86,13 +90,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
             finish();
             return;
         }
+        printPP_cpcl = new PrintPP_CPCL();
+            if("".equals(SPUtil.getParam(this,"name",""))||"".equals(SPUtil.getParam(this,"address",""))){
+           jumpToDevice();
+        }else {
+                if (!printPP_cpcl.isConnected()) {
+                    mInfo.setText(SPUtil.getParam(this, "name", ""));
+                    boolean connect = printPP_cpcl.connect(SPUtil.getParam(this, "name", ""), SPUtil.getParam(this, "address", ""));
+                    isConnected = connect;
+                }
+        }
+    }
 
+    public void jumpToDevice(){
         Intent serverIntent = new Intent(this, DeviceListActivity.class);
         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
-
-        printPP_cpcl = new PrintPP_CPCL();
-
-
     }
 
     @Override
@@ -113,17 +125,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     address = sdata.substring(sdata.length() - 17);
                     name = sdata.substring(0, (sdata.length() - 17));
                     if (!isConnected) {
+                        showDialog();
                         if (printPP_cpcl.connect(name, address)) {
                             isConnected = true;
+
                             mInfo.setText("蓝牙地址"+address);
                             mInfo.setText("蓝牙名称"+name);
+                            SPUtil.setParam(this,"address",address);
+                            SPUtil.setParam(this,"name",name);
 
                         } else {
                             mInfo.setText("连接失败");
                             isConnected = false;
                         }
                     }
-
                 }
                 break;
             case REQUEST_ENABLE_BT:
@@ -153,7 +168,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         }
-
     }
 
     @Override
@@ -162,7 +176,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
             default:
                 break;
             case R.id.dayin:
-                print();
+                if(isConnected){
+                    print();
+                }else {
+                    jumpToDevice();
+                }
 //                printebmpData();
                 break;
             case R.id.back:
@@ -170,6 +188,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
         }
     }
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+    public void showDialog(){
+        builder.setTitle("蓝牙连接");
+        builder.setMessage("正在连接...");
+        builder.show();
+    }
+
+
 
     public boolean openBlueTooth() {
         if (BlueToothUtil.isBluetoothSupported()) {
