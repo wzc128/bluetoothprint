@@ -210,6 +210,7 @@
         android:gravity="center"
         android:layout_marginTop="20dp"
         android:layout_below="@+id/view1"
+        android:id="@+id/tips"
         android:text="该项属于该批次第二份次数，阿萨大厦"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

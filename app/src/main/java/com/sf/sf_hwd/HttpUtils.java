@@ -24,11 +24,11 @@ public class HttpUtils {
      * @param urlStr
      * @param callBack
      */
-    public static void doGetAsyn(final String urlStr, final CallBack callBack) {
+    public static void doGetAsyn(final String urlStr, final CallBack callBack, final String authorization) throws Exception{
         new Thread() {
             public void run() {
                 try {
-                    String result = doGet(urlStr);
+                    String result = doGet(urlStr,authorization);
                     if (callBack != null) {
                         callBack.onRequestComplete(result);
                     }
@@ -50,11 +50,11 @@ public class HttpUtils {
      * @param callBack
      * @throws Exception
      */
-    public static void doPostAsyn(final String urlStr, final String params, final CallBack callBack) throws Exception {
+    public static void doPostAsyn(final String urlStr, final String params, final CallBack callBack, final String authorization) throws Exception {
         new Thread() {
             public void run() {
                 try {
-                    String result = doPost(urlStr, params);
+                    String result = doPost(urlStr, params,authorization);
                     if (callBack != null) {
                         callBack.onRequestComplete(result);
                     }
@@ -75,7 +75,7 @@ public class HttpUtils {
      * @return
      * @throws Exception
      */
-    public static String doGet(String urlStr) {
+    public static String doGet(String urlStr,String authorization) {
         URL url = null;
         HttpURLConnection conn = null;
         InputStream is = null;
@@ -87,6 +87,7 @@ public class HttpUtils {
             conn.setConnectTimeout(TIMEOUT_IN_MILLIONS);
 //            conn.setRequestProperty("Authorization","Basic NjAxMTAwMDE6TlRBMVFVRXpSVEZEUWpJMVJUWXlPRU0xTXpZME56a3dSVEU0TTBaQ1JFVT0=");
             conn.setRequestMethod("GET");
+            conn.setRequestProperty("authorization",authorization);
             conn.setRequestProperty("accept", "*/*");
             conn.setRequestProperty("connection", "Keep-Alive");
             if (conn.getResponseCode() == 200) {
@@ -135,7 +136,7 @@ public class HttpUtils {
      * @return 代表远程资源的响应结果
      * @throws Exception
      */
-    public static String doPost(String url, String param) {
+    public static String doPost(String url, String param,String authorization) {
         PrintWriter out = null;
         BufferedReader in = null;
         String result = "";
@@ -143,6 +144,7 @@ public class HttpUtils {
             URL realUrl = new URL(url); // 打开和URL之间的连接
             HttpURLConnection conn = (HttpURLConnection) realUrl
                     .openConnection(); // 设置通用的请求属性
+            conn.setRequestProperty("authorization",authorization);
             conn.setRequestProperty("accept", "*/*");
             conn.setRequestProperty("connection", "Keep-Alive");
             conn.setRequestMethod("POST");

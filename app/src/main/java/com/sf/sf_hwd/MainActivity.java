@@ -1,21 +1,15 @@
 package com.sf.sf_hwd;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.qr.PrintPP_CPCL;
 import com.qr.QiRuiCommand;
 
@@ -32,7 +27,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 
-    private String url = "https://hda-miniarch.sf-express.com/api/";
+
+    private String SERVER_URI = "https://hda-miniarch.sf-express.com/api/";
     private ImageView mBack;
     private TextView mJijianrenName;
     private TextView mJijianrenPhone;
@@ -42,11 +38,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private TextView mShoujianrenAddress;
     private TextView mWaixianghao;
     private TextView mPicihao;
+    private TextView mTips;
     private Button mDayin;
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
     private BluetoothAdapter mBluetoothAdapter = null;
     private PrintPP_CPCL printPP_cpcl;
+
+    private String authorization;
     /**
      * 信息
      */
@@ -66,8 +65,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mDayin.setOnClickListener(this);
         mBack.setOnClickListener(this);
         mInfo = (TextView) findViewById(R.id.info);
-
-
+        mTips = (TextView) findViewById(R.id.tips);
+        authorization = getIntent().getStringExtra("authorization");
     }
 
     private static final String TAG = "MainActivity";
@@ -100,14 +99,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
         my = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-
+                //iscan广播
                 if (intent.getAction().equals(SCANRESULT)) {
-                    String  barocode=intent.getStringExtra("value");
-                    int barocodelen=intent.getIntExtra("length",0);
-                    System.out.println(barocode);
-                    System.out.println(barocodelen);
-
+                    String barocode = intent.getStringExtra("value");
+//                    int barocodelen = intent.getIntExtra("length", 0);
+//                    System.out.println(barocode);
+//                    System.out.println(barocodelen);
+                    mWaixianghao.setText(barocode);
+                    getOrder(barocode);
                 }
+                //蓝牙广播
                 if (intent.getAction().equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
                     mInfo.setText("蓝牙设备已断开，请重新连接");
                     isConnected = false;
@@ -124,10 +125,143 @@ public class MainActivity extends Activity implements View.OnClickListener {
     BroadcastReceiver my;
     public static final String SCANRESULT = "android.intent.action.SCANRESULT";
 
+    private void fillOrderData(OrderDetailData.DataBean dataBean) {
+        mJijianrenName.setText(dataBean.getJcontact());
+        mJijianrenPhone.setText(dataBean.getJtel());
+        mJijianrenAddress.setText(dataBean.getJaddress());
+        mShoujianrenName.setText(dataBean.getDcontact());
+        mShoujianrenPhone.setText(dataBean.getDtel());
+        mShoujianrenAddress.setText(dataBean.getDaddress());
+        mPicihao.setText(dataBean.getOrderId());
+        mTips.setText("该箱属于该批次第" + dataBean.getTotalNum() + "箱货，未打印" + dataBean.getNotPrintNum() + "箱");
+    }
+
+    private void getOrder(String barocode) {
+        try {
+            System.out.println(">>>>>>>>>>"+getAuthorization());
+            HttpUtils.doGetAsyn(SERVER_URI + "/order/getOrder?boxNo=" + barocode, new HttpUtils.CallBack() {
+                @Override
+                public void onRequestComplete(String result) {
+                    if ("".equals(result) || result == null) {
+                        Message message = new Message();
+                        message.what = 3;
+                        message.obj = "获取打印信息失败，请重试！";
+                        handler.sendMessage(message);
+                    } else {
+                        Gson gson = new Gson();
+                        OrderDetailData rData = gson.fromJson(result, OrderDetailData.class);
+                        if (rData.isSuccess()) {
+                            Message message = new Message();
+                            message.what = 2;
+                            message.obj = rData.getData();
+                            handler.sendMessage(message);
+                        } else {
+                            Message message = new Message();
+                            message.what = 3;
+                            message.obj = rData.getMessage();
+                            handler.sendMessage(message);
+                        }
+                    }
+                }
+            }, getAuthorization());
+        } catch (Exception e) {
+            Message message = new Message();
+            message.what = 3;
+            message.obj = "获取打印信息失败，请重试！";
+            handler.sendMessage(message);
+        }
+    }
+
+    private void getPrint() {
+        try {
+            HttpUtils.doPostAsyn(SERVER_URI + "/order/print", "boxNo=" + mWaixianghao.getText(), new HttpUtils.CallBack() {
+                @Override
+                public void onRequestComplete(String result) {
+                    mDayin.setEnabled(true);
+                    System.out.println("打印的数据======" + result);
+                    if ("".equals(result) || result == null) {
+                        Message message = new Message();
+                        message.what = 3;
+                        message.obj = "获取打印信息失败，请重试！";
+                        handler.sendMessage(message);
+                        mDayin.setEnabled(true);
+                    } else {
+                        Gson gson = new Gson();
+                        PrintData printData = gson.fromJson(result, PrintData.class);
+                        if (printData.isSuccess() && "0".equals(printData.getCode())) {
+                            print(printData.getData());
+                            mDayin.setEnabled(true);
+                        } else {
+                            Message message = new Message();
+                            message.what = 3;
+                            message.obj = printData.getMessage();
+                            handler.sendMessage(message);
+                            mDayin.setEnabled(true);
+                        }
+                    }
+                }
+            }, getAuthorization());
+        } catch (Exception e) {
+            Message message = new Message();
+            message.what = 3;
+            message.obj = "获取打印信息失败，请重试！";
+            handler.sendMessage(message);
+        }
+
+    }
+
+    //TODO
+    private String getAuthorization() {
+        if (authorization != null)
+            return authorization;
+        return "";
+    }
+
+    private void getPrintFlag() {
+        try {
+            HttpUtils.doGetAsyn(SERVER_URI + "/order/getPrintFlag?boxNo=" + mWaixianghao.getText(), new HttpUtils.CallBack() {
+                @Override
+                public void onRequestComplete(String result) {
+                    if ("".equals(result) || result == null) {
+                        Message message = new Message();
+                        message.what = 3;
+                        message.obj = "获取打印信息失败，请重试！";
+                        handler.sendMessage(message);
+                        mDayin.setEnabled(true);
+                    } else {
+                        Gson gson = new Gson();
+                        RData rData = gson.fromJson(result, RData.class);
+                        if (rData.isSuccess()) {
+                            if ("0".equals(rData.getCode())) {
+                                System.out.println("准备打印。。。。。。");
+                                getPrint();
+                            } else {
+                                //TODO 提示是否补打
+                                System.out.println("补打。。。。");
+                                getPrint();
+                            }
+                        } else {
+                            Message message = new Message();
+                            message.what = 3;
+                            message.obj = rData.getMessage();
+                            handler.sendMessage(message);
+                            mDayin.setEnabled(true);
+                        }
+                    }
+                }
+            }, getAuthorization());
+        } catch (Exception e) {
+            Message message = new Message();
+            message.what = 3;
+            message.obj = "获取打印信息失败，请重试！";
+            handler.sendMessage(message);
+            mDayin.setEnabled(true);
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         unregisterReceiver(my);
     }
 
@@ -184,6 +318,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     }
                     mDayin.setEnabled(true);
                     break;
+                case 2:
+                    fillOrderData((OrderDetailData.DataBean) msg.obj);
+                    break;
+                case 3:
+                    Toast.makeText(MainActivity.this, msg.obj.toString(), Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -229,31 +368,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
 
-    public void daNet() {
-
-//        HttpUtils.doPostAsyn("","code=12113413431413"+"&no="+);
-
-//        HttpUtils.doGetAsyn("", new HttpUtils.CallBack() {
-////            @Override
-////            public void onRequestComplete(String result) {
-////                mDayin.setEnabled(true);
-////                if ("".equals(result) || result == null) {
-////
-////                } else print();
-////
-////            }
-////        });
-
-        Intent intent = new Intent(this,Main2Activity.class);
-        intent.putExtra("code",123);
-        intent.putExtra("name","asan");
-        Data data = new Data();
-        data.setName("xxxxx");
-        intent.putExtra("data",data);
-        startActivity(intent);
-
-    }
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -262,7 +376,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.dayin:
                 if (isConnected) {
 //                    mDayin.setEnabled(false);
-                    daNet();
+                    getPrintFlag();
 
                 } else {
                     //选择设备界面
@@ -306,10 +420,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 //        }
 //    }
 
-    private String theAddress = "上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市上海市";
-
-    public void print() {
+    public void print(PrintData.DataBean dataBean) {
         if (isConnected) {
+            PrintData.DataBean.OrderDetailVOBean orderDetailVO = dataBean.getOrderDetailVO();
             ArrayList<byte[]> data = new ArrayList<byte[]>();
             byte[] wakeup = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             QiRuiCommand printer = new QiRuiCommand();
@@ -328,7 +441,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             //  Clear page buffer
             data.add(printer.QiRui_Cls());
             data.add(printer.QiRui_Text(40, 104, "TSS16.BF2", 0, 1, 1, true,
-                    "1/5"));
+                    dataBean.getRate()));  //1/5
             data.add(printer.QiRui_Text(80, 176, "TSS16.BF2", 0, 1, 1, true,
                     "子单号"));
             data.add(printer.QiRui_Text(80, 208, "TSS16.BF2", 0, 1, 1, true,
@@ -336,9 +449,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
             data.add(printer.QiRui_Text(408, 808, "TSS16.BF2", 0, 1, 1, true,
                     "运单号"));
             data.add(printer.QiRui_Text(152, 200, "TSS24.BF2", 0, 1, 1, true,
-                    "母单号123123123")); //母单号
+                    dataBean.getMailno())); //母单号
             data.add(printer.QiRui_Text(544, 128, "TSS32.BF2", 0, 1, 1, true,
-                    "顺丰标快"));
+                     "1".equals(orderDetailVO.getExpressType()) ? "顺丰标快" : "顺丰特惠"));
             data.add(printer.QiRui_Text(48, 240, "TSS16.BF2", 0, 1, 1, true,
                     "目"));
             data.add(printer.QiRui_Text(48, 264, "TSS16.BF2", 0, 1, 1, true,
@@ -346,30 +459,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
             data.add(printer.QiRui_Text(48, 288, "TSS16.BF2", 0, 1, 1, true,
                     "地"));
             data.add(printer.QiRui_Text(88, 240, "TSS32.BF2", 0, 2, 2, true,
-                    "目的地TTE")); //目的地
+                    orderDetailVO.getDdeliverycode())); //目的地
             data.add(printer.QiRui_Text(48, 336, "TSS16.BF2", 0, 1, 1, true,
                     "收"));
             data.add(printer.QiRui_Text(48, 360, "TSS16.BF2", 0, 1, 1, true,
                     "件"));
             data.add(printer.QiRui_Text(48, 384, "TSS16.BF2", 0, 1, 1, true,
                     "人"));
-
-            if (theAddress.length() > 26) {
+            String daddress = orderDetailVO.getDaddress();
+            if (daddress.length() > 26) {
                 data.add(printer.QiRui_Text(88, 328, "TSS16.BF2", 0, 1, 1, true,
-                        "收件人" + ' ' +
-                                "18812345678" + ' ' +
-                                "xxxx公司"));
+                        orderDetailVO.getDcontact() + " " +
+                                  orderDetailVO.getDtel() + " " +
+                                  orderDetailVO.getDcompany()));
                 data.add(printer.QiRui_Text(88, 352, "TSS16.BF2", 0, 1, 1, true,
-                        theAddress.substring(0, 26)));
+                        daddress.substring(0, 30)));
                 data.add(printer.QiRui_Text(88, 376, "TSS16.BF2", 0, 1, 1, true,
-                        theAddress.substring(26)));
+                        daddress.substring(30)));
             } else {
                 data.add(printer.QiRui_Text(88, 336, "TSS24.BF2", 0, 1, 1, true,
-                        "收件人" + ' ' +
-                                "18812345678" + ' ' +
-                                "xxxx公司"));
+                        orderDetailVO.getDcontact() + " " +
+                                orderDetailVO.getDtel() + " " +
+                                orderDetailVO.getDcompany()));
                 data.add(printer.QiRui_Text(88, 368, "TSS24.BF2", 0, 1, 1, true,
-                        theAddress));
+                        daddress));
             }
 
             data.add(printer.QiRui_Text(48, 952, "TSS16.BF2", 0, 1, 1, true,
@@ -378,25 +491,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     "件"));
             data.add(printer.QiRui_Text(48, 992, "TSS16.BF2", 0, 1, 1, true,
                     "人"));
-            if (theAddress.length() > 26) {
+            if (daddress.length() > 26) {
                 data.add(printer.QiRui_Text(88, 944, "TSS16.BF2", 0, 1, 1, true,
-                        "收件人" + ' ' +
-                                "18812345678" + ' ' +
-                                "xxxx公司"));
+                        orderDetailVO.getDcontact() + " " +
+                                orderDetailVO.getDtel() + " " +
+                                orderDetailVO.getDcompany()));
                 data.add(printer.QiRui_Text(88, 968, "TSS16.BF2", 0, 1, 1, true,
-                        theAddress.substring(0, 26)));
+                        daddress.substring(0, 26)));
                 data.add(printer.QiRui_Text(88, 992, "TSS16.BF2", 0, 1, 1, true,
-                        theAddress.substring(26)));
+                        daddress.substring(26)));
             } else {
                 data.add(printer.QiRui_Text(88, 944, "TSS24.BF2", 0, 1, 1, true,
-                        "收件人" + ' ' +
-                                "18812345678" + ' ' +
-                                "xxxx公司"));
+                        orderDetailVO.getDcontact() + " " +
+                                orderDetailVO.getDtel() + " " +
+                                orderDetailVO.getDcompany()));
                 data.add(printer.QiRui_Text(88, 976, "TSS24.BF2", 0, 1, 1, true,
-                        theAddress));
+                        daddress));
             }
 
-
+            String jaddress = orderDetailVO.getJaddress();
             data.add(printer.QiRui_Text(48, 432, "TSS16.BF2", 0, 1, 1, true,
                     "寄"));
             data.add(printer.QiRui_Text(48, 456, "TSS16.BF2", 0, 1, 1, true,
@@ -404,13 +517,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
             data.add(printer.QiRui_Text(48, 480, "TSS16.BF2", 0, 1, 1, true,
                     "人"));
             data.add(printer.QiRui_Text(88, 424, "TSS16.BF2", 0, 1, 1, true,
-                    "寄件人" + ' ' +
-                            "18812345678" + ' ' +
-                            "xxxx公司")); //寄件人
+                    orderDetailVO.getJcontact() + " " +
+                            orderDetailVO.getJtel() + " " +
+                            orderDetailVO.getJcompany())); //寄件人
             data.add(printer.QiRui_Text(88, 448, "TSS16.BF2", 0, 1, 1, true,
-                    "上海市 上海市")); //寄件人
+                    orderDetailVO.getJprovince() + " " + orderDetailVO.getJcityName())); //寄件人
             data.add(printer.QiRui_Text(88, 472, "TSS16.BF2", 0, 1, 1, true,
-                    "是撒额发违反啊额我发i俄军发")); //寄件人
+                    jaddress)); //寄件人
 
             data.add(printer.QiRui_Text(48, 856, "TSS16.BF2", 0, 1, 1, true,
                     "寄"));
@@ -419,18 +532,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
             data.add(printer.QiRui_Text(48, 904, "TSS16.BF2", 0, 1, 1, true,
                     "人"));
             data.add(printer.QiRui_Text(88, 856, "TSS16.BF2", 0, 1, 1, true,
-                    "寄件人" + ' ' +
-                            "18812345678" + ' ' +
-                            "xxxx公司")); //寄件人
+                    orderDetailVO.getJcontact() + " " +
+                            orderDetailVO.getJtel() + " " +
+                            orderDetailVO.getJcompany())); //寄件人
             data.add(printer.QiRui_Text(88, 880, "TSS16.BF2", 0, 1, 1, true,
-                    "上海市 上海市")); //寄件人
+                    orderDetailVO.getJprovince() + " " + orderDetailVO.getJcityName())); //寄件人
             data.add(printer.QiRui_Text(88, 904, "TSS16.BF2", 0, 1, 1, true,
-                    "是撒额发违反啊额我发i俄军发")); //寄件人
-            String payMethod = "寄方付"; //1:寄方付 2:收方付 3:第三方付
+                    jaddress)); //寄件人
+            String payMethod = ""; //1:寄方付 2:收方付 3:第三方付
+            if (orderDetailVO.getPayMethod() ==1) {
+                payMethod = "寄方付";
+            } else if (orderDetailVO.getPayMethod() == 2) {
+                payMethod = "收方付";
+            } else if (orderDetailVO.getPayMethod() == 3) {
+                payMethod = "第三方付";
+            } else {
+                payMethod = "";
+            }
             data.add(printer.QiRui_Text(40, 512, "TSS16.BF2", 0, 1, 1, true,
                     "付款方式:" + payMethod));
             data.add(printer.QiRui_Text(40, 544, "TSS16.BF2", 0, 1, 1, true,
-                    "月结卡号:" + "123231231"));
+                    "月结卡号:" + orderDetailVO.getCustId()));
 
             data.add(printer.QiRui_Text(48, 624, "TSS16.BF2", 0, 1, 1, true,
                     "托"));
@@ -438,9 +560,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     "寄"));
             data.add(printer.QiRui_Text(48, 656, "TSS16.BF2", 0, 1, 1, true,
                     "物"));
+            String cargo = "监控器材";
+            if (orderDetailVO.getOrderCargoList()!= null && orderDetailVO.getOrderCargoList().size() > 0) {
+                cargo = orderDetailVO.getOrderCargoList().get(0).getCargo();
+            }
             data.add(printer.QiRui_Text(88, 640, "TSS16.BF2", 0, 1, 1, true,
-                    "监控器材")); //托寄物
-
+                    cargo)); //托寄物
             data.add(printer.QiRui_Text(528, 616, "TSS16.BF2", 0, 1, 1, true,
                     "收方签署"));
             data.add(printer.QiRui_Text(600, 696, "TSS16.BF2", 0, 1, 1, true,

@@ -1,0 +1,59 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>index</title>
+</head>
+<link rel="stylesheet" href="./css/login.css">
+<body>
+<div>
+    <div class="loginWrap">
+        <div class="item">
+            <img src="./images/account.png" alt="">
+            <input type="text" id="account" placeholder="请输入账号">
+        </div>
+        <div class="item">
+            <img src="./images/password.png" alt="">
+            <input type="password" id="pwd" placeholder="请输入密码">
+        </div>
+        <div class="loginBtn" onclick="loginEvt()">
+            登录
+        </div>
+    </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script>
+    var URL = "https://hda-miniarch.sf-express.com/api";
+    function loginEvt() {
+        alert('login')
+        $.ajax({
+            url: URL + '/login',
+            async: true,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                loginName: $('#account').val(),
+                password: $('#pwd').val()
+            },
+            success: function (res) {
+                console.log(res);
+                if(res.code=="0"){
+                alert(res.code)
+                    <!--window.localStorage.setItem('authorization',res.data.authToken);-->
+                    <!--window.location.href="select.html"-->
+                }else{
+                    alert(res.message)
+                }
+            },
+            error: function (err) {
+                alert(err)
+            }
+        })
+    }
+</script>
+</html>
